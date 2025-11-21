@@ -1,6 +1,6 @@
 ---
 title: "Monte Carlo Simulation"
-author: "Your name"
+author: "Ryan Barent"
 format: html
 ---
 
@@ -38,11 +38,42 @@ Write a function that takes $n$ and returns the distance between the start and e
 Use vector-based operations to increase the efficiency of your function.
 
 
+```{r}
+distcalc = function(n){
+theta = runif(n, 0, 2*pi)
+phi = runif(n, 0, 2*pi)
+    
+x = cos(theta)*sin(phi)
+y = sin(theta)*sin(phi)
+z = cos(phi)
+
+x_fin = sum(x)
+y_fin = sum(y)
+z_fin = sum(z)
+
+dist = sqrt(x_fin^2 + y_fin^2 + z_fin^2)
+return(dist)
+  
+}
+
+distcalc(10)
+
+
+
+```
+
 ## Distribution of Unconstrained Links
 
 Simulate 10000 chains and save the distribution of the end-to-end distance.
 
+```{r}
+library(ggplot2)
 
+results = data.frame(value = replicate(1000, distcalc(10)))
+
+ggplot(results, aes(x = value)) + geom_histogram(bins = 30)
+
+```
 
 # Constrained Polymer Chains
 For real polymers, adjacent links don’t have the complete freedom of orientation allowed in the case of the ideal model. 
@@ -54,11 +85,77 @@ We can do this by checking the angle between adjacent links after choosing a ran
 ## Single Constrained Link Function
 
 Write a function that takes $n$ and returns the distance between the start and end points of a chain. 
-Can you think of a way to use vectorized functions to accomplish this task? Why or why not? 
+Can you think of a way to use vectorized functions to accomplish this task? Why or why not?
+
+```{r}
+constrained = function(n){
+  
+
+  
+  x_vec = c(0)
+  y_vec = c(0)
+  z_vec = c(0)
+  
+  tx = 0
+  ty = 0
+  tz = 0
+    
+  ox = 0
+  oy = 0
+  oz = 0
+  
+  for (i in 1:n){
+  dist = 0
+  while (dist<0.765){
+    
+    theta = runif(1, 0, 2*pi)
+    phi = runif(1, 0, 2*pi)
+
+    
+    x = cos(theta)*sin(phi)
+    y = sin(theta)*sin(phi)
+    z = cos(phi)
+    
+    dist = sqrt((x-tx)^2 + (y-ty)^2 + (z-tz)^2)
+  }
+    
+  x_vec = c(x_vec,x)
+  y_vec = c(y_vec,y)
+  z_vec = c(z_vec,z)
+  
+  tx = ox
+  ty = oy
+  tz = oz
+  
+  ox = x
+  ty = y
+  tz = z
+  
+  }    
+dist_total = sqrt(sum(x_vec)^2 + sum(y_vec)^2 + sum(z_vec)^2)
+return(dist_total)
+
+}
+
+constrained(10)
+```
 
 ## Distribution of Constrained Links
 
 Simulate 10000 chains and save the distribution of the end-to-end distance.
 Plot the density of the unconstrained links and the density of constrained links on the same plot -- how much has the distribution changed?
+
+```{r}
+results_constrained = data.frame(value = replicate(1000,constrained(10)))
+
+ggplot() +
+  geom_histogram(data = results, aes(x = value, fill = "Unconstrained"),bins = 30,color = "black",) +
+  geom_histogram(data = results_constrained,aes(x = value, fill = "Constrained"),bins = 30,color = "black",) +
+  scale_fill_manual(name = "Type",values = c("Unconstrained" = "blue","Constrained"   = "red" )
+  )
+
+
+
+```
 
 
